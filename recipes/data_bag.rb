@@ -17,6 +17,15 @@
 # limitations under the License.
 #
 
+def load_data_bag_item(bag, item)
+  case node['user']['data_bag_encrypted']
+  when 'no', 'false', false
+    data_bag_item(bag, item)
+  else
+    Chef::EncryptedDataBagItem.load(bag, item)
+  end
+end
+
 bag = node['user']['data_bag_name']
 
 # Fetch the user array from the node's attribute hash. If a subhash is
@@ -30,7 +39,7 @@ end
 
 # only manage the subset of users defined
 Array(user_array).each do |i|
-  u = data_bag_item(bag, i.gsub(/[.]/, '-'))
+  u = load_data_bag_item(bag, i.gsub(/[.]/, '-'))
   username = u['username'] || u['id']
 
   user_account username do
